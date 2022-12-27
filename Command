@@ -1,0 +1,58 @@
+/* Command design pattern
+ Command encapsulates actions and is used to define concrete actions used for delayed execution or adding dynamic behavior to 'invoker'. Useful for constructing generic components that delegate or execute method calls dynamically. Useful for when we need one ohject to perform various actions without storing all possible actions in a single object. This pattern decomposes actions into conrete types via protocol conformance and the invoker type that holds a command object to perform concrete actions
+ 
+ Requires
+ 1. Command protocol - defining actions to be executed
+ 2. Conrete command types - types conforming to above
+ 3. Invoker - type connected with Command protocol via aggregation (receives commands to executed by caller)
+ 4. Caller - type acting as source that initiates actions and may need some results back
+ */
+//1. Command Protocol
+protocol LeftCommand {
+    func turnLeft()
+}
+
+protocol RightCommand {
+    func turnRight()
+}
+//2. Conrete command types
+struct Bike: LeftCommand, RightCommand {
+    func turnLeft() {
+        print("lean left")
+    }
+    func turnRight() {
+        print("lean right")
+    }
+}
+
+struct Car: LeftCommand, RightCommand {
+    func turnLeft() {
+        print("turn wheel left")
+    }
+    func turnRight() {
+        print("turn wheel right")
+    }
+}
+
+//3. invoker
+struct RemoteControl {
+    var conveyance: LeftCommand & RightCommand
+    init(_ conveyance: LeftCommand & RightCommand) {
+        self.conveyance = conveyance
+    }
+    func turnConveyanceLeft() {
+        conveyance.turnLeft()
+    }
+    func turnConveyanceRight() {
+        conveyance.turnRight()
+    }
+}
+//4. instead of storing each conveyance in the invoker (because we dont know how many forms of transport are available), used dependency injection in a form of aggregation via the initializer, giving us the ability to change concrete actions at runtime
+let bike = Bike()
+let car = Car()
+var remote = RemoteControl(bike)
+remote.turnConveyanceLeft()
+remote.turnConveyanceRight()
+remote.conveyance = car
+remote.turnConveyanceLeft()
+remote.turnConveyanceRight()
