@@ -1,0 +1,62 @@
+
+/* Iterator design pattern
+ Decomposes iteration logic of a collection of elements into separate 'iterator' object - useful when a type needs to be accessed and processed in a loop because it hides underlying representation and creates logic for accessing/traversing elements - based on Swift's IteratorProtocol and Sequence/Collection protocols (Collection adds index subscripting and other iteration capabilities over Sequence)
+ */
+
+struct Song {
+    var artist: String
+    var name: String
+}
+
+struct Album {
+    var category: String
+//    private var songs: [Song]
+    var songs: [Song]
+}
+//if we mark 'songs' as 'private', we won't be able to iterate through, so adopt Iterator pattern - similar to Swift's IteratorProtocol responsible for supplying values of a sequence one at a time.
+
+struct AlbumIterator: IteratorProtocol {
+    private var index = 0
+    private let album: [Song]
+    
+    init(_ album: [Song]) {
+        self.album = album
+    }
+    
+    mutating func next() -> Song? {
+        defer {
+            index += 1
+        }
+        return album.count > index ? album[index] : nil
+    }
+}
+//AlbumIterator struct adds ability to iteratre through songs array via implementation of IteratorProtocol's "next()" function BUT we cannot use Album type in a for-each loop, needs to conform to Sequence protocol
+
+var songs = [Song(artist: "Nelly", name: "Ride Wit' Me"), Song(artist: "MFDOOM", name: "Figaro")]
+//extension Album: Sequence {
+//    func makeIterator() -> AlbumIterator {
+//        return AlbumIterator(songs)
+//    }
+//}
+
+let album = Album(category: "HipHop", songs: songs)
+
+//album.forEach { song in
+//    print("song \(song)")
+//}
+
+
+//simplified Iterator - since we're using an array to store songs, we can add conformance to Sequence and wrap our iteration logic into AnyIterator type
+
+extension Album: Sequence {
+    func makeIterator() -> AnyIterator<Song> {
+        var iterator = songs.makeIterator()
+        
+        return AnyIterator {
+            while let next = iterator.next() {
+                return next
+            }
+            return nil
+        }
+    }
+}
